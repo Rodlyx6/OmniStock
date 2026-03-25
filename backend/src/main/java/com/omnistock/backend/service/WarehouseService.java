@@ -1,20 +1,13 @@
 package com.omnistock.backend.service;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.omnistock.backend.domain.entity.Warehouse;
-import com.omnistock.backend.domain.entity.Location;
+import com.omnistock.backend.domain.dto.WarehouseUpsertRequest;
+import com.omnistock.backend.domain.vo.WarehouseVO;
 
-/**
- * 仓库Service接口
- */
+import java.util.List;
+
 public interface WarehouseService {
-    IPage<Warehouse> queryWarehouse(int page, int pageSize);
-    Warehouse getWarehouseDetail(Long warehouseId);
-    Warehouse createWarehouse(Warehouse warehouse);
-    void updateWarehouse(Long warehouseId, Warehouse warehouse);
-    
-    IPage<Location> queryLocation(int page, int pageSize, Long warehouseId);
-    Location getLocationDetail(Long locationId);
-    Location createLocation(Long warehouseId, Location location);
-    void updateLocation(Long locationId, Location location);
+
+    Long upsert(WarehouseUpsertRequest request);
+
+    List<WarehouseVO> listAll();
 }

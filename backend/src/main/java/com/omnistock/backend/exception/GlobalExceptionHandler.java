@@ -2,27 +2,30 @@ package com.omnistock.backend.exception;
 
 import com.omnistock.backend.common.Result;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.validation.BindException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-/**
- * 全局异常处理
- */
 @Slf4j
-@ControllerAdvice
-@ResponseBody
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
-    public Result<?> handleBusinessException(BusinessException e) {
-        log.warn("业务异常: code={}, message={}", e.getCode(), e.getMessage());
-        return Result.fail(e.getCode(), e.getMessage(), e.getData());
+    public Result<Void> handleBusinessException(BusinessException e) {
+        log.error("business exception, code={}, message={}", e.getCode(), e.getMessage());
+        return Result.fail(e.getCode(), e.getMessage());
+    }
+
+    @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class, IllegalArgumentException.class})
+    public Result<Void> handleParamException(Exception e) {
+        log.warn("param error: {}", e.getMessage());
+        return Result.fail(ErrorCode.PARAM_ERROR, "参数错误");
     }
 
     @ExceptionHandler(Exception.class)
-    public Result<?> handleException(Exception e) {
-        log.error("系统异常", e);
-        return Result.fail(500, "系统内部错误");
+    public Result<Void> handleException(Exception e) {
+        log.error("system exception", e);
+        return Result.fail(ErrorCode.SYSTEM_ERROR, "系统异常");
     }
 }

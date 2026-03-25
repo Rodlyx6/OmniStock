@@ -1,35 +1,32 @@
 package com.omnistock.backend.domain.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * 库存表
- * 
- * 核心字段：
- * - version: 乐观锁，防超卖
- * - available_quantity: 可用库存 = quantity - reserved_quantity
- */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @TableName("inventory")
 public class Inventory {
-    private Long inventoryId;
+
+    @TableId(type =IdType.ASSIGN_ID)
+    private Long id;
+
+    @TableField(value = "sku_id")
     private Long skuId;
+
+    @TableField(value = "location_id")
     private Long locationId;
+
+    @TableField(value = "quantity")
     private Integer quantity;
-    private Integer reservedQuantity;
-    private Integer availableQuantity;
+
+    @TableField(value = "version")
     private Integer version;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+
+    @TableField(value = "created_time" , fill =FieldFill.INSERT)
+    private LocalDateTime createdTime;
+
+    @TableField(value = "updated_time" , fill = FieldFill.UPDATE)
+    private LocalDateTime updatedTime;
 }

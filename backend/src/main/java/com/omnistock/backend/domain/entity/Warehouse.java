@@ -1,27 +1,26 @@
 package com.omnistock.backend.domain.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @TableName("warehouse")
 public class Warehouse {
+
     @TableId(type = IdType.ASSIGN_ID)
-    private Long warehouseId;
-    private String warehouseCode;
-    private String warehouseName;
+    private Long id;
+    @TableField(value = "name")
+    private String name;
+    @TableField(value = "address")
     private String address;
-    private Integer status;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    @TableField(value = "capacity")
+    private Integer capacity;
+    @TableField(value = "current_usage")
+    private Integer currentUsage;
+    @TableField(value = "created_time" , fill = FieldFill.INSERT)
+    private LocalDateTime createdTime;
+    @TableField(value = "updated_time" , fill = FieldFill.UPDATE)
+    private LocalDateTime updatedTime;
 }

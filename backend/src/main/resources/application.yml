@@ -32,8 +32,3 @@ mybatis-plus:
     db-config:
       id-type: assign_id
 
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-  api-docs:
-    path: /v3/api-docs

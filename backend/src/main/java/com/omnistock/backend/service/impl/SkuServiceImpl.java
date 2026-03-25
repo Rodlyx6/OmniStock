@@ -1,23 +1,20 @@
 package com.omnistock.backend.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.omnistock.backend.domain.dto.SkuUpsertRequest;
 import com.omnistock.backend.domain.entity.Sku;
+import com.omnistock.backend.domain.vo.SkuVO;
 import com.omnistock.backend.exception.BusinessException;
-import com.omnistock.backend.constant.ErrorCode;
+import com.omnistock.backend.exception.ErrorCode;
 import com.omnistock.backend.mapper.SkuMapper;
 import com.omnistock.backend.service.SkuService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
-/**
- * SKU Service实现
- */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SkuServiceImpl implements SkuService {
@@ -25,55 +22,56 @@ public class SkuServiceImpl implements SkuService {
     private final SkuMapper skuMapper;
 
     @Override
-    public IPage<Sku> querySku(int page, int pageSize, String skuCode, String skuName) {
-        Page<Sku> pageObj = new Page<>(page, pageSize);
-        LambdaQueryWrapper<Sku> wrapper = new LambdaQueryWrapper<>();
-        
-        if (skuCode != null) {
-            wrapper.like(Sku::getSkuCode, skuCode);
+    @Transactional(rollbackFor = Exception.class)
+    public Long upsert(SkuUpsertRequest request) {
+        if (request.getId() == null) {
+            long count = skuMapper.selectCount(
+                    new LambdaQueryWrapper<Sku>().eq(Sku::getCode, request.getCode()));
+            if (count > 0) {
+                throw new BusinessException(ErrorCode.SKU_CODE_DUPLICATE, "SKU编码已存在");
+            }
+            Sku sku = new Sku();
+            sku.setCode(request.getCode());
+            sku.setName(request.getName());
+            sku.setCategory(request.getCategory());
+            sku.setUnit(request.getUnit());
+            sku.setWeight(request.getWeight());
+            sku.setVolume(request.getVolume());
+            skuMapper.insert(sku);
+            return sku.getId();
         }
-        if (skuName != null) {
-            wrapper.like(Sku::getSkuName, skuName);
+
+        Sku exist = skuMapper.selectById(request.getId());
+        if (exist == null) {
+            throw new BusinessException(ErrorCode.SKU_NOT_FOUND, "SKU不存在");
         }
-        
-        return skuMapper.selectPage(pageObj, wrapper);
+        exist.setName(request.getName());
+        exist.setCategory(request.getCategory());
+        exist.setUnit(request.getUnit());
+        exist.setWeight(request.getWeight());
+        exist.setVolume(request.getVolume());
+        skuMapper.updateById(exist);
+        return exist.getId();
     }
 
     @Override
-    public Sku getSkuDetail(Long skuId) {
-        Sku sku = skuMapper.selectById(skuId);
-        if (sku == null) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "SKU不存在");
-        }
-        return sku;
+    public List<SkuVO> listAll() {
+        return skuMapper.selectList(
+                new LambdaQueryWrapper<Sku>().orderByDesc(Sku::getUpdatedTime))
+                .stream().map(this::toVO).collect(Collectors.toList());
     }
 
-    @Override
-    public Sku createSku(Sku sku) {
-        sku.setVersion(0);
-        sku.setCreatedAt(LocalDateTime.now());
-        sku.setUpdatedAt(LocalDateTime.now());
-        skuMapper.insert(sku);
-        return sku;
-    }
-
-    @Override
-    public void updateSku(Long skuId, Sku sku) {
-        Sku existing = skuMapper.selectById(skuId);
-        if (existing == null) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "SKU不存在");
-        }
-        sku.setSkuId(skuId);
-        sku.setUpdatedAt(LocalDateTime.now());
-        skuMapper.updateById(sku);
-    }
-
-    @Override
-    public void deleteSku(Long skuId) {
-        Sku sku = skuMapper.selectById(skuId);
-        if (sku == null) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "SKU不存在");
-        }
-        skuMapper.deleteById(skuId);
+    private SkuVO toVO(Sku sku) {
+        SkuVO vo = new SkuVO();
+        vo.setId(sku.getId());
+        vo.setCode(sku.getCode());
+        vo.setName(sku.getName());
+        vo.setCategory(sku.getCategory());
+        vo.setUnit(sku.getUnit());
+        vo.setWeight(sku.getWeight());
+        vo.setVolume(sku.getVolume());
+        vo.setCreatedTime(sku.getCreatedTime());
+        vo.setUpdatedTime(sku.getUpdatedTime());
+        return vo;
     }
 }

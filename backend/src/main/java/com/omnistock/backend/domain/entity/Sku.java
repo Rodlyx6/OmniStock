@@ -1,31 +1,30 @@
 package com.omnistock.backend.domain.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @TableName("sku")
 public class Sku {
     @TableId(type = IdType.ASSIGN_ID)
-    private Long skuId;
-    private String skuCode;
-    private String skuName;
+    private Long id;
+    @TableField(value = "code")
+    private String code;
+    @TableField(value = "name")
+    private String name;
+    @TableField(value = "category")
     private String category;
-    private BigDecimal weight;
-    private BigDecimal volume;
-    private Integer abcCategory;
-    private Integer version;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    @TableField(value = "unit")
+    private String unit;
+    @TableField(value = "weight")
+    private Double weight;
+    @TableField(value = "volume")
+    private Double volume;
+    @TableField(value = "created_time" , fill = FieldFill.INSERT)
+    private LocalDateTime createdTime;
+    @TableField(value = "updated_time" , fill = FieldFill.UPDATE)
+    private LocalDateTime updatedTime;
+
 }

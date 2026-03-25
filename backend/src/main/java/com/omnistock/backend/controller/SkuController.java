@@ -1,54 +1,33 @@
 package com.omnistock.backend.controller;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.omnistock.backend.common.Result;
-import com.omnistock.backend.domain.entity.Sku;
+import com.omnistock.backend.domain.dto.SkuUpsertRequest;
+import com.omnistock.backend.domain.vo.SkuVO;
 import com.omnistock.backend.service.SkuService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-/**
- * SKU Controller
- */
+import java.util.List;
+
 @RestController
-@RequestMapping("/v1/skus")
+@RequestMapping("/sku")
 @RequiredArgsConstructor
 public class SkuController {
 
     private final SkuService skuService;
 
     @PostMapping
-    public Result<Sku> createSku(@Valid @RequestBody Sku sku) {
-        Sku result = skuService.createSku(sku);
-        return Result.created(result);
+    public Result<Long> upsert(@Valid @RequestBody SkuUpsertRequest request) {
+        return Result.success(skuService.upsert(request));
     }
 
     @GetMapping
-    public Result<IPage<Sku>> querySku(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(required = false) String skuCode,
-            @RequestParam(required = false) String skuName) {
-        IPage<Sku> result = skuService.querySku(page, pageSize, skuCode, skuName);
-        return Result.success(result);
-    }
-
-    @GetMapping("/{skuId}")
-    public Result<Sku> getSkuDetail(@PathVariable Long skuId) {
-        Sku result = skuService.getSkuDetail(skuId);
-        return Result.success(result);
-    }
-
-    @PutMapping("/{skuId}")
-    public Result<Sku> updateSku(@PathVariable Long skuId, @Valid @RequestBody Sku sku) {
-        skuService.updateSku(skuId, sku);
-        return Result.success(skuService.getSkuDetail(skuId));
-    }
-
-    @DeleteMapping("/{skuId}")
-    public Result<?> deleteSku(@PathVariable Long skuId) {
-        skuService.deleteSku(skuId);
-        return Result.success();
+    public Result<List<SkuVO>> listAll() {
+        return Result.success(skuService.listAll());
     }
 }

@@ -1,15 +1,13 @@
 package com.omnistock.backend.service;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.omnistock.backend.domain.entity.Sku;
+import com.omnistock.backend.domain.dto.SkuUpsertRequest;
+import com.omnistock.backend.domain.vo.SkuVO;
 
-/**
- * SKU Service接口
- */
+import java.util.List;
+
 public interface SkuService {
-    IPage<Sku> querySku(int page, int pageSize, String skuCode, String skuName);
-    Sku getSkuDetail(Long skuId);
-    Sku createSku(Sku sku);
-    void updateSku(Long skuId, Sku sku);
-    void deleteSku(Long skuId);
+
+    Long upsert(SkuUpsertRequest request);
+
+    List<SkuVO> listAll();
 }
