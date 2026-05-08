@@ -21,6 +21,17 @@ const http = axios.create({
   transformResponse: [transformLargeInteger]
 })
 
+http.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => Promise.reject(error)
+)
+
 http.interceptors.response.use(
   (response) => {
     const body = response.data
@@ -33,6 +44,11 @@ http.interceptors.response.use(
     return body
   },
   (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      window.location.href = '/login'
+    }
     const serverMessage = error?.response?.data?.message
     return Promise.reject(new Error(serverMessage || error?.message || '网络异常'))
   }

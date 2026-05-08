@@ -21,8 +21,8 @@ public class InventoryLog {
     private String changeType;
     @TableField(value = "biz_id")
     private String bizId;
-    @TableField(value = "operator_id")
-    private Long operatorId;
+    @TableField(value = "operator_name")
+    private String operatorName;
     @TableField(value = "created_time" , fill = FieldFill.INSERT)
     private LocalDateTime createdTime;
     @TableField(value = "updated_time" , fill = FieldFill.UPDATE)

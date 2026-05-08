@@ -23,7 +23,7 @@ public class InventoryLogVO {
 
     private String bizId;
 
-    private Long operatorId;
+    private String operatorName;
 
     private LocalDateTime createdTime;
 }

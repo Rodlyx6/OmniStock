@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS inventory_log (
     change_qty INT NOT NULL,
     change_type VARCHAR(32) NOT NULL,
     biz_id VARCHAR(64) NOT NULL,
-    operator_id BIGINT NOT NULL,
+    operator_name VARCHAR(64) NOT NULL,
     created_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_sku (sku_id),
@@ -66,12 +66,56 @@ CREATE TABLE IF NOT EXISTS inbound_record (
     sku_id BIGINT NOT NULL,
     location_id BIGINT NOT NULL,
     quantity INT NOT NULL,
-    operator_id BIGINT NOT NULL,
+    operator_name VARCHAR(64) NOT NULL,
     created_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_biz_id (biz_id),
     KEY idx_sku (sku_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 用户表
+CREATE TABLE IF NOT EXISTS sys_user (
+    id BIGINT PRIMARY KEY,
+    username VARCHAR(64) NOT NULL UNIQUE,
+    password VARCHAR(128) NOT NULL,
+    email VARCHAR(128) NOT NULL,
+    phone VARCHAR(32),
+    avatar VARCHAR(255),
+    status TINYINT NOT NULL DEFAULT 1 COMMENT '0:禁用, 1:启用',
+    created_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 角色表
+CREATE TABLE IF NOT EXISTS sys_role (
+    id BIGINT PRIMARY KEY,
+    name VARCHAR(64) NOT NULL UNIQUE,
+    code VARCHAR(64) NOT NULL UNIQUE,
+    description VARCHAR(255),
+    created_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 用户角色关联表
+CREATE TABLE IF NOT EXISTS sys_user_role (
+    id BIGINT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    role_id BIGINT NOT NULL,
+    created_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_user_role (user_id, role_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 初始化默认数据
+-- 密码默认为 123456 (加密后的)
+-- 管理员角色
+INSERT IGNORE INTO sys_role (id, name, code, description) VALUES (1, '超级管理员', 'ROLE_ADMIN', '拥有系统所有权限');
+INSERT IGNORE INTO sys_role (id, name, code, description) VALUES (2, '普通用户', 'ROLE_USER', '普通业务操作权限');
+
+
+INSERT IGNORE INTO sys_user (id, username, password, email, status) VALUES (1, 'admin', '$2a$10$vG/y4Y2QyU.uO5v3X0UeZ.H9y.8gE7oXmR1vW/j8p9r9.oO/Z/Zq.', 'admin@omnistock.com', 1);
+
+-- 分配管理员角色
+INSERT IGNORE INTO sys_user_role (id, user_id, role_id) VALUES (1, 1, 1);
 
 CREATE TABLE IF NOT EXISTS outbound_record (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -79,7 +123,7 @@ CREATE TABLE IF NOT EXISTS outbound_record (
     sku_id BIGINT NOT NULL,
     location_id BIGINT NOT NULL,
     quantity INT NOT NULL,
-    operator_id BIGINT NOT NULL,
+    operator_name VARCHAR(64) NOT NULL,
     created_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_biz_id (biz_id),

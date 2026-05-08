@@ -32,7 +32,7 @@
             <td>{{ row.locationCode || '-' }}</td>
             <td>{{ row.changeQty }}</td>
             <td>{{ row.bizId }}</td>
-            <td>{{ row.operatorId }}</td>
+            <td>{{ row.operatorName }}</td>
           </tr>
           <tr v-if="rows.length === 0"><td colspan="8" class="muted">暂无流水数据</td></tr>
         </tbody>

@@ -23,8 +23,8 @@ public class InboundRecord {
     @TableField(value = "quantity")
     private Integer quantity;
 
-    @TableField(value = "operator_id")
-    private Long operatorId;
+    @TableField(value = "operator_name")
+    private String operatorName;
 
     @TableField(value = "created_time" , fill = FieldFill.INSERT)
     private LocalDateTime createdTime;

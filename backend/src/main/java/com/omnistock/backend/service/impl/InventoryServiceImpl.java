@@ -23,6 +23,8 @@ import com.omnistock.backend.mapper.OutboundRecordMapper;
 import com.omnistock.backend.mapper.SkuMapper;
 import com.omnistock.backend.service.InventoryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -49,12 +51,22 @@ public class InventoryServiceImpl implements InventoryService {
     private final LocationMapper locationMapper;
     private final SkuMapper skuMapper;
 
+    private String getCurrentUsername() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UserDetails) {
+            return ((UserDetails) principal).getUsername();
+        } else {
+            return principal.toString();
+        }
+    }
+
     // ------------------------------------------------------------------ inbound
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String inbound(InboundCreateRequest request) {
         String bizId = buildBizId(request.getBizId(), "IN");
+        String username = getCurrentUsername();
         for (StockItem item : request.getItems()) {
             Sku sku = getSkuOrThrow(item.getSkuId());
             Location location = getLocationOrThrow(item.getLocationId());
@@ -83,8 +95,8 @@ public class InventoryServiceImpl implements InventoryService {
             }
 
             updateLocationCapacity(location, sku, item.getQuantity(), true);
-            insertInboundRecord(request.getOperatorId(), bizId, item);
-            insertInventoryLog(request.getOperatorId(), bizId, item, CHANGE_TYPE_INBOUND);
+            insertInboundRecord(username, bizId, item);
+            insertInventoryLog(username, bizId, item, CHANGE_TYPE_INBOUND);
         }
         return bizId;
     }
@@ -95,6 +107,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Transactional(rollbackFor = Exception.class)
     public String outbound(OutboundCreateRequest request) {
         String bizId = buildBizId(request.getBizId(), "OUT");
+        String username = getCurrentUsername();
         for (StockItem item : request.getItems()) {
             Sku sku = getSkuOrThrow(item.getSkuId());
             Location location = getLocationOrThrow(item.getLocationId());
@@ -124,8 +137,8 @@ public class InventoryServiceImpl implements InventoryService {
             }
 
             updateLocationCapacity(location, sku, item.getQuantity(), false);
-            insertOutboundRecord(request.getOperatorId(), bizId, item);
-            insertInventoryLog(request.getOperatorId(), bizId, item, CHANGE_TYPE_OUTBOUND);
+            insertOutboundRecord(username, bizId, item);
+            insertInventoryLog(username, bizId, item, CHANGE_TYPE_OUTBOUND);
         }
         return bizId;
     }
@@ -206,34 +219,34 @@ public class InventoryServiceImpl implements InventoryService {
         locationMapper.updateById(location);
     }
 
-    private void insertInboundRecord(Long operatorId, String bizId, StockItem item) {
+    private void insertInboundRecord(String operatorName, String bizId, StockItem item) {
         InboundRecord record = new InboundRecord();
         record.setBizId(bizId);
         record.setSkuId(item.getSkuId());
         record.setLocationId(item.getLocationId());
         record.setQuantity(item.getQuantity());
-        record.setOperatorId(operatorId);
+        record.setOperatorName(operatorName);
         inboundRecordMapper.insert(record);
     }
 
-    private void insertOutboundRecord(Long operatorId, String bizId, StockItem item) {
+    private void insertOutboundRecord(String operatorName, String bizId, StockItem item) {
         OutboundRecord record = new OutboundRecord();
         record.setBizId(bizId);
         record.setSkuId(item.getSkuId());
         record.setLocationId(item.getLocationId());
         record.setQuantity(item.getQuantity());
-        record.setOperatorId(operatorId);
+        record.setOperatorName(operatorName);
         outboundRecordMapper.insert(record);
     }
 
-    private void insertInventoryLog(Long operatorId, String bizId, StockItem item, String changeType) {
+    private void insertInventoryLog(String operatorName, String bizId, StockItem item, String changeType) {
         InventoryLog log = new InventoryLog();
         log.setSkuId(item.getSkuId());
         log.setLocationId(item.getLocationId());
         log.setChangeQty(CHANGE_TYPE_INBOUND.equals(changeType) ? item.getQuantity() : -item.getQuantity());
         log.setChangeType(changeType);
         log.setBizId(bizId);
-        log.setOperatorId(operatorId);
+        log.setOperatorName(operatorName);
         inventoryLogMapper.insert(log);
     }
 
@@ -295,7 +308,7 @@ public class InventoryServiceImpl implements InventoryService {
             vo.setChangeQty(log.getChangeQty());
             vo.setChangeType(log.getChangeType());
             vo.setBizId(log.getBizId());
-            vo.setOperatorId(log.getOperatorId());
+            vo.setOperatorName(log.getOperatorName());
             vo.setCreatedTime(log.getCreatedTime());
             Sku sku = skuMap.get(log.getSkuId());
             if (sku != null) {
